@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		
+		<link rel="stylesheet" href="css/bootstrap.min.css">
+		<link rel="stylesheet" href="css/bootstrap-icons.min.css">
+		<link rel="stylesheet" href="css/fader.css">
+		
+		<script src="js/Fader.js"></script>
+		<script src="js/QLCPlus.js"></script>
+		
+		<title>QLC+</title>
+		
+		<style>
+			#scenes tr {
+				cursor: pointer;
+			}
+			
+			.scene-active {
+				background-color: #04AA6D;
+				--bs-table-bg-state: #04AA6D;
+			}
+			
+			.scene-active:hover {
+				background-color: #04AA6D;
+				--bs-table-bg-state: #04AA6D;
+			}
+			
+			.btn-scene {
+				width: 33%;
+			}
+		</style>
+
+		<script type="text/javascript">
+			//-----[ CLASS: Scene ]---------------------------------------------
+			class Scene
+			{
+				constructor(name)
+				{
+					this.name = name;
+					this.values = null;
+					this.duration = 1000;
+				}
+			} //class Scene
+			
+			//-----[ CLASS: SceneUI ]-------------------------------------------
+			class SceneUI
+			{
+				constructor(scene, trElement)
+				{
+					this.scene = scene;
+					this.trElement = trElement;
+					this.trElement.onclick = this.onClicked.bind(this);
+				}
+				
+				makeActive()
+				{
+					this.trElement.classList.add("scene-active");
+				}
+				
+				makeInactive()
+				{
+					this.trElement.classList.remove("scene-active");
+				}
+				
+				onClicked()
+				{
+					selectScene(this.scene);
+				}
+			}
+			
+			class SceneFader
+			{
+				constructor(faders, from, to, duration)
+				{
+					const tickRate = 10; //ms
+
+					this.duration = duration;
+					this.faders = faders;
+					this.from = from;
+					this.to = to;
+					
+					this.values = [];
+					this.per = [];
+					this.tick = this.onTick.bind(this);
+					
+					for (let i = 0; i < this.faders.length; i++)
+					{
+						var valueDiff = to[i] - from[i];
+						var valuePerTick = this.duration ? ((valueDiff / this.duration) * tickRate) : valueDiff;
+						valuePerTick = (valuePerTick > 0) ? Math.ceil(valuePerTick) : Math.floor(valuePerTick);
+						
+						console.log("ValueDiff=" + valueDiff + ", valuePerTick=" + valuePerTick);
+						
+						this.values[i] = from[i];
+						this.per[i] = valuePerTick;
+					}
+					
+					this.timer = window.setInterval(this.tick, tickRate);
+				}
+				
+				onTick()
+				{
+					var noChange = true;
+					
+					for (let i = 0; i < this.values.length; i++)
+					{
+						var newValue = this.values[i];
+						if (this.from[i] > this.to[i])
+						{
+							if (this.values[i] > this.to[i])
+							{
+								newValue = this.values[i] + this.per[i];
+								noChange = false;
+							}
+							else
+							{
+								newValue = this.to[i];
+							}
+						}
+						else
+						{
+							if (this.values[i] < this.to[i])
+							{
+								newValue = this.values[i] + this.per[i];
+								noChange = false;
+							}
+							else
+							{
+								newValue = this.to[i];
+							}
+						}
+						this.values[i] = newValue;
+						
+						faders[i].setValue(newValue);
+					}
+					
+					if (noChange)
+					{
+						//Stop the timer
+						window.clearInterval(this.timer);
+					}
+				}
+			}
+			
+			var qlc = new QLCPlus();
+			var scenes = [];
+			var faders = [];
+			var currentSceneIndex = null;
+			var sceneUIs = [];
+			var sceneFader = null;
+			
+			//-----[ FUNCTION: onChannelInput ]---------------------------------
+			/**
+			* @brief Handle a channel fader change
+			*/
+			function onChannelInput(self)
+			{
+				var channel = self.channel;
+				var val = self.value;
+
+				try
+				{
+					if (channel == 0)
+					{
+						qlc.setGrandMaster(val);
+					}
+					else
+					{
+						qlc.setSimpleDeskChannel(channel, val);
+					}
+					
+				} 
+				catch(e)
+				{
+					//console.error(e);
+				}
+			}
+			
+			//-----[ FUNCTION: saveScene ]--------------------------------------
+			/**
+			* @brief Save the current fader values to the given scene
+			*/
+			function saveScene(index)
+			{
+				for (let i = 0; i < faders.length; i++)
+				{
+					scenes[index].values[i] = faders[i].value;
+				}
+			} //function saveScene
+			
+			//-----[ FUNCTION: updateSceneTable ]-------------------------------
+			/**
+			* @brief Populate the table of scenes
+			*/
+			function updateSceneTable()
+			{
+				var scenesTable = document.getElementById("scenes");
+				
+				scenesTable.innerHTML = "";
+				sceneUIs = [];
+				
+				for (let i = 0; i < scenes.length; i++)
+				{
+					var row = document.createElement("tr");
+					row.onclick = function(){
+						
+					};
+					scenesTable.appendChild(row);
+					
+					sceneUIs.push(new SceneUI(i, row));
+					
+					var colName = document.createElement("td");
+					colName.textContent = scenes[i].name;
+					row.appendChild(colName);
+					
+					var colTransition = document.createElement("td");
+					colTransition.textContent = scenes[i].duration;
+					row.appendChild(colTransition);
+				}
+				
+				currentSceneIndex = null;
+			} //function updateSceneTable
+			
+			//-----[ FUNCTION: newScene ]---------------------------------------
+			/**
+			* @brief Create a new scene with the given name
+			*/
+			function newScene(name)
+			{
+				var nextSceneNumber = scenes.length + 1;
+				
+				scenes.push(new Scene("Scene " + nextSceneNumber));
+				updateSceneTable();
+			} //function newScene
+			
+			//-----[ FUNCTION: removeScene ]------------------------------------
+			/**
+			* @brief Delete a scene
+			*/
+			function removeScene(index)
+			{
+				if (currentSceneIndex !== null)
+				{
+					scenes.splice(index, 1);
+					updateSceneTable();
+				}
+			} //function newScene
+			
+			//-----[ FUNCTION: init ]-------------------------------------------
+			/**
+			* @brief Initialize the application
+			*/
+			function init()
+			{
+				//Grand Master
+				const gmFaderElement = document.querySelectorAll('#gm');
+				var gmFader = new Fader(gmFaderElement[0]);
+				
+				//Channels
+				const faderElements = document.querySelectorAll('#faders > .fader');
+				for (let i = 0; i < faderElements.length; i++)
+				{
+					var fader = new Fader(faderElements[i]);
+					faders.push(fader);
+				}
+			}
+			
+			//-----[ FUNCTION: selectScene ]------------------------------------
+			/**
+			* @brief Change to the given scene
+			*/
+			function selectScene(index)
+			{
+				console.log("Select Scene " + index);
+				
+				currentSceneIndex = index;
+				
+				if (index < sceneUIs.length)
+				{
+					for (let i = 0; i < sceneUIs.length; i++)
+					{
+						sceneUIs[i].makeInactive();
+					}
+					sceneUIs[index].makeActive();
+					
+					if (scenes[index].values)
+					{
+						const duration = scenes[index].duration; //Time to transition to this scene
+						
+						/*
+						var from = [];
+						var to = [];
+						for (let i = 0; i < faders.length; i++)
+						{
+							from[i] = faders[i].value;
+						}
+						for (let i = 0; i < scenes[index].values.length; i++)
+						{
+							to[i] = scenes[index].values[i];
+						}
+						sceneFader = new SceneFader(faders, from, to, duration);
+						*/
+						
+						for (let i = 0; i < faders.length; i++)
+						{
+							faders[i].fade(scenes[index].values[i], duration);
+						}
+					}
+				}
+			}
+			
+			//-----[ FUNCTION: nextScene ]--------------------------------------
+			/**
+			* @brief Change to the next scene in the list
+			*/
+			function nextScene()
+			{
+				if (sceneUIs.length > 0) {
+					if (currentSceneIndex !== null) {
+						currentSceneIndex += 1;
+					} else {
+						currentSceneIndex = 0;
+					}
+					
+					if (currentSceneIndex >= sceneUIs.length) {
+						currentSceneIndex = 0;
+					}
+					
+					selectScene(currentSceneIndex);
+				}
+			}
+			
+			//-----[ FUNCTION: prevScene ]--------------------------------------
+			/**
+			* @brief Change to the previous scene in the list
+			*/
+			function prevScene()
+			{
+				if (sceneUIs.length > 0) {
+					if (currentSceneIndex !== null) {
+						currentSceneIndex -= 1;
+					} else {
+						currentSceneIndex = sceneUIs.length - 1;
+					}
+					
+					if (currentSceneIndex < 0) {
+						currentSceneIndex = sceneUIs.length - 1;
+					}
+					
+					selectScene(currentSceneIndex);
+				}
+			}
+			
+			//-----[ FUNCTION: saveScene ]--------------------------------------
+			/**
+			* @brief Save the current fader settings to the scene at the given
+			*        index.
+			*/
+			function saveScene(index)
+			{
+				if (index < scenes.length)
+				{
+					console.log("Saving faders to scene " + index);
+					scenes[index].values = [];
+					for (let i = 0; i < faders.length; i++)
+					{
+						scenes[index].values[i] = faders[i].value;
+					}
+				}
+			}
+			
+		</script>
+	</head>
+	<body onload="init()">
+		<div class="navbar navbar-expand-lg bg-body-tertiary">
+			<div class="container-fluid">
+				<button class="nav-item" onclick="qlc.connect('127.0.0.1:9999')">Connect</button>
+			</div>
+		</div>
+		<div class="container-fluid">
+			<div class="row">
+				<div class="col-1 p-2">
+					<div class="fader-container d-flex justify-content-center">
+						<div class="fader" id="gm" channel="0" value="255" max="255" onValueChanged="onChannelInput" label="GM"></div>
+					</div>
+				</div>
+				
+				<!-- Faders -->
+				<div class="col-8 p-2">
+					<div class="fader-container d-flex justify-content-center" id="faders">
+						<div class="fader" id="channel1" channel="1" value="0" max="255" onValueChanged="onChannelInput" label="1"></div>
+						<div class="fader" id="channel2" channel="2" value="0" max="255" onValueChanged="onChannelInput" label="2"></div>
+						<div class="fader" id="channel3" channel="3" value="0" max="255" onValueChanged="onChannelInput" label="3"></div>
+						<div class="fader" id="channel4" channel="4" value="0" max="255" onValueChanged="onChannelInput" label="4"></div>
+						<div class="fader" id="channel5" channel="5" value="0" max="255" onValueChanged="onChannelInput" label="5"></div>
+						<div class="fader" id="channel6" channel="6" value="0" max="255" onValueChanged="onChannelInput" label="6"></div>
+						<div class="fader" id="channel7" channel="7" value="0" max="255" onValueChanged="onChannelInput" label="7"></div>
+						<div class="fader" id="channel8" channel="8" value="0" max="255" onValueChanged="onChannelInput" label="8"></div>
+						<div class="fader" id="channel9" channel="9" value="0" max="255" onValueChanged="onChannelInput" label="9"></div>
+						<div class="fader" id="channel10" channel="10" value="0" max="255" onValueChanged="onChannelInput" label="10"></div>
+						<div class="fader" id="channel11" channel="11" value="0" max="255" onValueChanged="onChannelInput" label="11"></div>
+						<div class="fader" id="channel12" channel="12" value="0" max="255" onValueChanged="onChannelInput" label="12"></div>
+					</div>
+				</div>
+				
+				<!-- Scenes -->
+				<div class="col-3">
+					<h1>Scenes</h1>
+					
+					<div class="m-2">
+						<button class="btn btn-primary" onclick="newScene()"><i class="bi-plus"></i></button>
+						<button class="btn btn-danger" onclick="removeScene(currentSceneIndex)"><i class="bi-trash"></i></button>
+						<button class="btn btn-primary" onclick="saveScene(currentSceneIndex)"><i class="bi-floppy"></i></button>
+					</div>
+					
+					<div class="m-2">
+						<button class="btn btn-primary btn-lg btn-scene" onclick="prevScene()"><i class="bi-caret-left"></i></button>
+						<button class="btn btn-primary btn-lg btn-scene" onclick="nextScene()"><i class="bi-caret-right"></i></button>
+					</div>
+					
+					<table class="table table-striped table-hover">
+						<thead>
+							<th>Name</th>
+							<th>Transition Time (ms)</th>
+						</thead>
+						<tbody id="scenes">
+							
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+
+		<script>
+			
+		</script>
+
+		<script src="js/bootstrap.bundle.min.js"></script>
+
+	</body>
+</html>
