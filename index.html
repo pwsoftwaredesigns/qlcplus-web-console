@@ -131,6 +131,7 @@
 				{
 					scenes[index].values[i] = faders[i].value;
 				}
+				persistScenes();
 			} //function saveScene
 
 			//-----[ FUNCTION: updateSceneTable ]-------------------------------
@@ -172,9 +173,11 @@
 				var nextSceneNumber = scenes.length + 1;
 
 				scenes.push(new Scene("Scene " + nextSceneNumber));
-				updateSceneTable();
 				//Save the current fader settings to the new scene
 				saveScene(scenes.length - 1);
+				updateSceneTable();
+				
+				persistScenes();
 			} //function newScene
 
 			//-----[ FUNCTION: removeScene ]------------------------------------
@@ -187,8 +190,18 @@
 				{
 					scenes.splice(index, 1);
 					updateSceneTable();
+					persistScenes();
 				}
 			} //function newScene
+			
+			//-----[ FUNCTION: persistScenes ]----------------------------------
+			/**
+			* @brief Persist scenes to local storeage
+			*/
+			function persistScenes()
+			{
+				localStorage.setItem("scenes", JSON.stringify(scenes));
+			} //function persistScenes
 
 			//-----[ FUNCTION: init ]-------------------------------------------
 			/**
@@ -226,6 +239,14 @@
 					$('#editSceneModal').modal('hide');
 					updateSceneTable();
 				});
+				
+				//Saved scenes
+				var savedScenes = localStorage.getItem("scenes");
+				if (savedScenes)
+				{
+					scenes = JSON.parse(savedScenes);
+					updateSceneTable();
+				}
 			}
 
 			//-----[ FUNCTION: selectScene ]------------------------------------
@@ -315,9 +336,9 @@
 					{
 						scenes[index].values[i] = faders[i].value;
 					}
+					persistScenes();
 				}
 			}
-
 
 			function editScene(index)
 			{
