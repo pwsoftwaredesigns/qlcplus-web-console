@@ -189,6 +189,9 @@ class Fader {
 	}
 } //class Fader
 
+/**
+* @brief Class which performs a "fade" over time for a Fader instance
+*/
 class FaderFader
 {
 	constructor(fader, to, duration)
