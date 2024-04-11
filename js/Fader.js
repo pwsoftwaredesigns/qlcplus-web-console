@@ -148,7 +148,9 @@ class Fader {
 
 	valueToPercent(val)
 	{
-		return val / this.max;
+		if (val < 0) return 0;
+		else if (val > this.maximum) return 1;
+		else return val / this.max;
 	}
 
 	setValueTextPercent(percent)
@@ -202,20 +204,27 @@ class FaderFader
 		this.onComplete = null;
 		this.onStopped = null;
 		
+		this.kTickRate = 10;
+		this.change = 1;
+		this.diff = 0;
+		
 		this.tickHandler = this.onTick.bind(this);
 	}
 	
 	start()
 	{
-		var valueDiff = this.to - this.fader.value; //How far do we need to fade?
-		if (valueDiff != 0) //Do we need to move?
+		this.diff = this.to - this.fader.value; //How far do we need to fade?
+		const diffAbs = Math.abs(this.diff);
+		
+		const ticks = this.duration / this.kTickRate; //The number of ticks
+		this.change = (this.diff > 0) ? Math.ceil(this.diff / ticks) : Math.floor(this.diff / ticks); //Change in value per tick
+		
+		//console.log("ticks @ " + this.kTickRate + "=" + ticks + ", change=" + this.change);
+		
+		if (diffAbs != 0) //Do we need to move?
 		{
-			var msPerStep = Math.ceil(this.duration / Math.abs(valueDiff)); //How many ms per step?
-			
-			console.log("valueDiff=" + valueDiff + ", msPerStep=" + msPerStep);
-			
-			this.direction = (valueDiff > 0);
-			this.timer = window.setInterval(this.tickHandler, msPerStep);
+			this.countdown = this.duration;
+			this.timer = window.setInterval(this.tickHandler, this.kTickRate);
 		}
 		else
 		{
@@ -231,7 +240,18 @@ class FaderFader
 	
 	onTick()
 	{
-		this.fader.setValue(this.direction ? this.fader.value + 1 : this.fader.value - 1);
+		var newValue = this.fader.value + this.change;
+		if (this.diff > 0)
+		{
+			if (newValue > this.to) newValue = this.to;
+		}
+		else
+		{
+			if (newValue < this.to) newValue = this.to;
+		}
+		
+		this.fader.setValue(newValue);
+		
 		if (this.fader.value == this.to)
 		{
 			if (this.onComplete) this.onComplete().bind(this);
