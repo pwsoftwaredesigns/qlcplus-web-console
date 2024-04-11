@@ -186,6 +186,9 @@ class Fader {
 	fade(to, duration)
 	{
 		console.log("Fader::fade(" + to + "," + duration + ")");
+		if (this.faderFader) this.faderFader.stop();
+		this.faderFader = null;
+		
 		this.faderFader = new FaderFader(this, to, duration);
 		this.faderFader.start();
 	}
@@ -213,6 +216,8 @@ class FaderFader
 	
 	start()
 	{
+		this.stop(); //To handle restart conditions
+		
 		this.diff = this.to - this.fader.value; //How far do we need to fade?
 		const diffAbs = Math.abs(this.diff);
 		
@@ -235,7 +240,11 @@ class FaderFader
 	stop()
 	{
 		window.clearInterval(this.timer); //Stop the timer
-		if (this.onStopped) this.onStopped().bind(this);
+		if (this.timer)
+		{
+			if (this.onStopped) this.onStopped().bind(this);
+		}
+		this.timer = null;
 	}
 	
 	onTick()
