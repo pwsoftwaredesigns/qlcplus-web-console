@@ -44,6 +44,21 @@
 					this.values = null;
 					this.duration = 1000;
 				}
+				
+				attributes()
+				{
+					return {
+						name: this.name,
+						duration: this.duration
+					};
+				}
+				
+				setAttributes(attributes)
+				{
+					if (attributes.hasOwnProperty("name")) this.name = attributes["name"]
+					if (attributes.hasOwnProperty("duration")) this.duration = attributes["duration"];
+				}
+				
 			} //class Scene
 
 			//-----[ CLASS: SceneUI ]-------------------------------------------
@@ -197,6 +212,20 @@
 					sceneMode = this.value;
 					console.log("Scene mode changed to " + sceneMode);
 				});
+				
+				$("#btnEditSceneSave").click(function(){
+					var fields = document.querySelector("#formEditScene input");
+					var attributes = {};
+					$("#formEditScene input").each(function(){
+						attributes[this.name] = this.value;
+					});
+
+					const index = $("#formEditScene input[name='scene']").val();
+					console.log("Setting scene " + index + " attributes");
+					scenes[index].setAttributes(attributes);
+					$('#editSceneModal').modal('hide');
+					updateSceneTable();
+				});
 			}
 
 			//-----[ FUNCTION: selectScene ]------------------------------------
@@ -290,22 +319,36 @@
 			}
 
 
-			function editScene(scene)
+			function editScene(index)
 			{
+				//Populate the modal
+				const scene = scenes[index];
+				const attributes = scene.attributes();
+				for (const key in attributes)
+				{
+					var inputField = document.querySelector("#formEditScene input[name='" + key + "']");
+					if (inputField)
+					{
+						inputField.value = attributes[key];
+					}
+				}
+				document.querySelector("#formEditScene input[name='scene']").value = index;
+
+				//Show the modal
 				$('#editSceneModal').modal({
 					focus: true
 				});
 			}
 
-			function onSceneClicked(scene)
+			function onSceneClicked(index)
 			{
 				if (sceneMode == "edit")
 				{
-					editScene(scene);
+					editScene(index);
 				}
 				else if (sceneMode == "run")
 				{
-					selectScene(scene);
+					selectScene(index);
 				}
 			}
 
@@ -389,19 +432,24 @@
 						</button>
 					</div>
 					<div class="modal-body">
-						<div class="form-group">
-							<label for="sceneName">Name</label>
-							<input type="text" class="form-control" id="sceneName" placeholder="Enter name">
-						</div>
-						<div class="form-group">
-							<label for="sceneDuration">Transition Time (ms)</label>
-							<input type="number" class="form-control" id="sceneDuration" value="0">
-						</div>
+						<form id="formEditScene">
+							<input type="hidden" name="scene" />
+							
+							<div class="form-group">
+								<label for="sceneName">Name</label>
+								<input type="text" class="form-control" name="name" placeholder="Enter name">
+							</div>
+							<div class="form-group">
+								<label for="sceneDuration">Transition Time (ms)</label>
+								<input type="number" class="form-control" name="duration" value="0">
+							</div>
+						</form>
 					</div>
 					<div class="modal-footer">
-						<button type="button" class="btn btn-primary">Save</button>
+						<button type="button" class="btn btn-primary" id="btnEditSceneSave">Save</button>
 						<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
 					</div>
+
 				</div>
 			</div>
 		</div>
