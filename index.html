@@ -431,6 +431,19 @@
 					$(".scene-run").css({"visibility":"visible", "display":""});
 				}
 			}
+			
+			function scrollToScene(index)
+			{
+				const kBuffer = 100;
+				
+				let table = $("#tableScenes");
+				let tr = $(sceneUIs[index].trElement);
+				let trTop = tr.position().top;
+				
+				let diff = trTop - table.height() + kBuffer;
+				
+				$("#tableScenes").scrollTop((diff > 0) ? trTop : 0);
+			}
 
 			//-----[ FUNCTION: selectScene ]------------------------------------
 			/**
@@ -472,6 +485,7 @@
 					}
 
 					selectScene(currentSceneIndex);
+					scrollToScene(currentSceneIndex);
 				}
 			}
 
@@ -493,6 +507,7 @@
 					}
 
 					selectScene(currentSceneIndex);
+					scrollToScene(currentSceneIndex);
 				}
 			}
 

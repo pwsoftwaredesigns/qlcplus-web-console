@@ -177,7 +177,6 @@ class Fader {
 	*/
 	fade(to, duration)
 	{
-		console.log("Fader::fade(" + to + "," + duration + ")");
 		if (this.faderFader) this.faderFader.stop();
 		this.faderFader = null;
 		
@@ -242,8 +241,6 @@ class FaderFader
 		
 		const ticks = this.duration / this.kTickRate; //The number of ticks
 		this.change = (this.diff > 0) ? Math.ceil(this.diff / ticks) : Math.floor(this.diff / ticks); //Change in value per tick
-		
-		//console.log("ticks @ " + this.kTickRate + "=" + ticks + ", change=" + this.change);
 		
 		if (diffAbs != 0) //Do we need to move?
 		{
