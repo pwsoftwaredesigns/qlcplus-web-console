@@ -32,19 +32,41 @@
 			.btn-scene {
 				width: 33%;
 			}
+			
+			#tableScenes {
+				max-height: 70vh;
+			}
 		</style>
 
 		<script type="text/javascript">
 			//-----[ CLASS: Scene ]---------------------------------------------
 			class Scene
 			{
-				constructor(name)
+				static toData(scene)
 				{
-					this.name = name;
-					this.values = null;
-					this.duration = 1000;
+					return scene;
 				}
 				
+				static fromData(data)
+				{
+					let scene = new Scene(data["name"]);
+					scene.values = data["values"];
+					scene.duration = data["duration"];
+					
+					return scene;
+				}
+				
+				constructor(name)
+				{
+					this.name = name; //User-defined name for the scene
+					this.values = null; //Values to which faders are set
+					this.duration = 1000; //Time (in ms) to fade to this scene
+				}
+				
+				/**
+				* @return The user-editable attributes of the scene as a
+				*         javascript object
+				*/
 				attributes()
 				{
 					return {
@@ -53,12 +75,29 @@
 					};
 				}
 				
+				/**
+				* @brief Set the user-editable attributes of the scene
+				*/
 				setAttributes(attributes)
 				{
 					if (attributes.hasOwnProperty("name")) this.name = attributes["name"]
 					if (attributes.hasOwnProperty("duration")) this.duration = attributes["duration"];
 				}
 				
+				/**
+				* @brief Fade the given set of faders to this scene
+				*/
+				fadeTo(faders)
+				{
+					if (this.values)
+					{
+						for (let i = 0; i < faders.length; i++)
+						{
+							faders[i].fade(this.values[i], this.duration);
+						}
+					}
+				}
+
 			} //class Scene
 
 			//-----[ CLASS: SceneUI ]-------------------------------------------
@@ -120,19 +159,6 @@
 					//console.error(e);
 				}
 			}
-
-			//-----[ FUNCTION: saveScene ]--------------------------------------
-			/**
-			* @brief Save the current fader values to the given scene
-			*/
-			function saveScene(index)
-			{
-				for (let i = 0; i < faders.length; i++)
-				{
-					scenes[index].values[i] = faders[i].value;
-				}
-				persistScenes();
-			} //function saveScene
 
 			//-----[ FUNCTION: updateSceneTable ]-------------------------------
 			/**
@@ -202,6 +228,23 @@
 			{
 				localStorage.setItem("scenes", JSON.stringify(scenes));
 			} //function persistScenes
+			
+			//-----[ FUNCTION: restoreScenes ]----------------------------------
+			function restoreScenes()
+			{
+				let savedScenes = localStorage.getItem("scenes");
+				if (savedScenes)
+				{
+					let data = JSON.parse(savedScenes);				
+					scenes = [];
+					for (let i = 0; i < data.length; i++)
+					{
+						scenes.push(Scene.fromData(data[i]));
+					}
+					
+					updateSceneTable();
+				}
+			}
 
 			//-----[ FUNCTION: init ]-------------------------------------------
 			/**
@@ -237,16 +280,12 @@
 					console.log("Setting scene " + index + " attributes");
 					scenes[index].setAttributes(attributes);
 					$('#editSceneModal').modal('hide');
+					persistScenes();
 					updateSceneTable();
 				});
 				
 				//Saved scenes
-				var savedScenes = localStorage.getItem("scenes");
-				if (savedScenes)
-				{
-					scenes = JSON.parse(savedScenes);
-					updateSceneTable();
-				}
+				restoreScenes();
 			}
 
 			//-----[ FUNCTION: selectScene ]------------------------------------
@@ -267,15 +306,7 @@
 					}
 					sceneUIs[index].makeActive();
 
-					if (scenes[index].values)
-					{
-						const duration = scenes[index].duration; //Time to transition to this scene
-
-						for (let i = 0; i < faders.length; i++)
-						{
-							faders[i].fade(scenes[index].values[i], duration);
-						}
-					}
+					scenes[index].fadeTo(faders);
 				}
 			}
 
@@ -375,7 +406,7 @@
 
 		</script>
 	</head>
-	<body onload="init()">
+	<body onload="init()" oncontextmenu="return false;">
 		<div class="navbar navbar-expand-lg bg-body-tertiary">
 			<div class="container-fluid">
 				<button class="nav-item" onclick="qlc.connect('127.0.0.1:9999')">Connect</button>
@@ -415,7 +446,9 @@
 						<button class="btn btn-primary" onclick="newScene()"><i class="bi-plus"></i></button>
 						<button class="btn btn-danger" onclick="removeScene(currentSceneIndex)"><i class="bi-trash"></i></button>
 						<button class="btn btn-primary" onclick="saveScene(currentSceneIndex)"><i class="bi-floppy"></i></button>
-						<div class="btn-group btn-group-toggle" data-toggle="buttons">
+						
+						<!-- Edit/Play Mode -->
+						<div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
 							<label class="btn btn-secondary active">
 								<input type="radio" name="selectMode" autocomplete="off" value="edit" checked><i class="bi-pencil"></i>
 							</label>
@@ -425,12 +458,7 @@
 						</div>
 					</div>
 
-					<div class="m-2">
-						<button class="btn btn-primary btn-lg btn-scene" onclick="prevScene()"><i class="bi-caret-left"></i></button>
-						<button class="btn btn-primary btn-lg btn-scene" onclick="nextScene()"><i class="bi-caret-right"></i></button>
-					</div>
-
-					<table class="table table-bordered table-hover">
+					<table class="table table-bordered table-hover table-responsive" id="tableScenes">
 						<thead>
 							<th>Name</th>
 							<th>Transition Time (ms)</th>
@@ -439,10 +467,16 @@
 
 						</tbody>
 					</table>
+					
+					<div class="m-2">
+						<button class="btn btn-primary btn-lg btn-scene" onclick="prevScene()"><i class="bi-caret-left"></i></button>
+						<button class="btn btn-primary btn-lg btn-scene" onclick="nextScene()"><i class="bi-caret-right"></i></button>
+					</div>
 				</div>
 			</div>
 		</div>
 
+		<!-- Edit Scene Attributes Modal -->
 		<div class="modal" tabindex="-1" role="dialog" id="editSceneModal">
 			<div class="modal-dialog" role="document">
 				<div class="modal-content">
