@@ -396,6 +396,10 @@
 					updateSceneTable();
 				});
 				
+				$("#formEditScene .btn-quick-duration").click(function(){
+					$("#formEditScene input[name='duration']").val(this.value);
+				});
+				
 				setSceneMode(sceneMode);
 
 				//Saved scenes
@@ -679,6 +683,16 @@
 							<div class="form-group">
 								<label for="sceneDuration">Transition Time (ms)</label>
 								<input type="number" class="form-control" name="duration" value="0">
+								
+								<div>
+									<button type="button" class="btn btn-secondary btn-quick-duration" value="0">0 s</button>
+									<button type="button" class="btn btn-secondary btn-quick-duration" value="250">¼ s</button>
+									<button type="button" class="btn btn-secondary btn-quick-duration" value="500">½ s</button>
+									<button type="button" class="btn btn-secondary btn-quick-duration" value="1000">1 s</button>
+									<button type="button" class="btn btn-secondary btn-quick-duration" value="2000">2 s</button>
+									<button type="button" class="btn btn-secondary btn-quick-duration" value="3000">3 s</button>
+									<button type="button" class="btn btn-secondary btn-quick-duration" value="5000">5 s</button>
+								</div>
 							</div>
 						</form>
 					</div>
