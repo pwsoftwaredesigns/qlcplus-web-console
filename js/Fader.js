@@ -24,6 +24,15 @@ class Fader {
 
 		var labelElement = document.createElement("div");
 		labelElement.setAttribute("class", "label");
+		
+		const kDivisions = 4;
+		for (let i = 1; i < kDivisions; i++)
+		{
+			let lineElement = document.createElement("div");
+			lineElement.setAttribute("class", "line bg-secondary");
+			lineElement.style.top = "calc(" + (i / kDivisions) * 100 + "% - (var(--handle-height) / 2))";
+			boundElement.appendChild(lineElement);
+		}
 
 		this.faderElement = faderElement;
 

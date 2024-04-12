@@ -29,7 +29,7 @@
 	.handle {
 		width: 100%;
 		height: var(--handle-height);
-		background-color: #04AA6D;
+		background-color: #026842;
 		cursor: pointer;
 		position: relative;
 	}
@@ -37,6 +37,12 @@
 	.bound {
 		flex: 1 1 auto;
 		height: calc(100% - var(--handle-height));
+		
+		.line {
+			position: relative;
+			width: 100%;
+			height: 1px;
+		}
 	}
 
 	.value {
