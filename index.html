@@ -166,8 +166,26 @@
 						confirmModal.show();
 					}.bind(this));
 					btnGroupElement.append(btnRemove);
-
 					tdElement.append(btnGroupElement);
+					
+					let btnGroupMoveElement = $("<div class='btn-group ms-2'></div>");
+					
+					let btnMoveUp = $("<button type='button' class='btn btn-secondary'><i class='bi-arrow-up'></i></button>");
+					btnMoveUp.click(function(e){
+						e.stopPropagation();
+						moveSceneUp(this.scene);
+					}.bind(this));
+					btnGroupMoveElement.append(btnMoveUp);
+					
+					let btnMoveDown = $("<button type='button' class='btn btn-secondary'><i class='bi-arrow-down'></i></button>");
+					btnMoveDown.click(function(e){
+						e.stopPropagation();
+						moveSceneDown(this.scene);
+					}.bind(this));
+					btnGroupMoveElement.append(btnMoveDown);
+					
+					tdElement.append(btnGroupMoveElement);
+					
 					this.trElement.appendChild(tdElement[0]);
 				}
 
@@ -268,6 +286,35 @@
 
 				persistScenes();
 			} //function newScene
+			
+			function arrayMove(arr, from, to)
+			{
+				var element = arr[from];
+			    arr.splice(from, 1);
+			    arr.splice(to, 0, element);
+			}
+			
+			//-----[ FUNCTION: moveSceneUp ]------------------------------------
+			function moveSceneUp(index)
+			{
+				if (index > 0)
+				{
+					arrayMove(scenes, index, index - 1);
+					updateSceneTable();
+					persistScenes();
+				}
+			}
+			
+			//-----[ FUNCTION: moveSceneDown ]----------------------------------
+			function moveSceneDown(index)
+			{
+				if (index < scenes.length - 1)
+				{
+					arrayMove(scenes, index, index + 1);
+					updateSceneTable();
+					persistScenes();
+				}
+			}
 
 			//-----[ FUNCTION: removeScene ]------------------------------------
 			/**
@@ -375,13 +422,13 @@
 
 				if (mode == "edit")
 				{
-					$(".scene-edit").css({"visibility":"visible", "display":"inherit"});
+					$(".scene-edit").css({"visibility":"visible", "display":""});
 					$(".scene-run").css({"visibility":"hidden", "display":"none"});
 				}
 				else if (sceneMode == "run")
 				{
 					$(".scene-edit").css({"visibility":"hidden", "display":"none"});
-					$(".scene-run").css({"visibility":"visible", "display":"inherit"});
+					$(".scene-run").css({"visibility":"visible", "display":""});
 				}
 			}
 
@@ -579,8 +626,8 @@
 					<div class="container-fluid table-responsive" id="tableScenes">
 						<table class="table table-bordered table-hover table-responsive" >
 							<thead>
-								<th>Name</th>
-								<th>Transition Time (ms)</th>
+								<th><i class="bi-tag"></i></th>
+								<th><i class="bi-clock"></i></th>
 								<th class='scene-edit'></th>
 							</thead>
 							<tbody id="scenes">
