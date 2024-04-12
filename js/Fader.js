@@ -19,13 +19,8 @@ class Fader {
 		handleElement.setAttribute("class", "handle");
 		boundElement.appendChild(handleElement);
 
-		var peekElement = document.createElement("button");
-		peekElement.setAttribute("class", "peek btn");
-
-		peekElement.addEventListener('mousedown', this.handlePeekDown.bind(this));
-		peekElement.addEventListener('touchstart', this.handlePeekDown.bind(this));
-		peekElement.addEventListener('mouseup', this.handlePeekUp.bind(this));
-		peekElement.addEventListener('touchend', this.handlePeekUp.bind(this));
+		this.peekElement = document.createElement("button");
+		this.peekElement.setAttribute("class", "peek btn");
 
 		var labelElement = document.createElement("div");
 		labelElement.setAttribute("class", "label");
@@ -34,16 +29,12 @@ class Fader {
 
 		this.faderElement.appendChild(valueElement);
 		this.faderElement.appendChild(bodyElement);
-		this.faderElement.appendChild(peekElement);
+		this.faderElement.appendChild(this.peekElement);
 		this.faderElement.appendChild(labelElement);
 
 		this.faderBody = boundElement;
 		this.handle = handleElement;
 		this.valueText = valueElement;
-
-		//this.faderBody = faderElement.querySelector('.body');
-		//this.handle = faderElement.querySelector('.handle');
-		//this.valueText = faderElement.querySelector('.value');
 
 		this.startY = null;
 		this.faderHeight = null;
@@ -59,9 +50,8 @@ class Fader {
 		this.onMouseDown = this.handleMouseDown.bind(this);
 		this.onMouseMove = this.handleMouseMove.bind(this);
 		this.onMouseUp = this.handleMouseUp.bind(this);
-
-		this.handle.addEventListener('mousedown', this.onMouseDown);
-		this.handle.addEventListener('touchstart', this.onMouseDown);
+		this.onPeekDown = this.handlePeekDown.bind(this);
+		this.onPeekUp = this.handlePeekUp.bind(this);
 
 		//Apply initial value
 		this.faderHeight = this.faderBody.offsetHeight;
@@ -69,6 +59,8 @@ class Fader {
 		var percent = this.valueToPercent(this.value);
 		this.setHandlePositionPercent(percent);
 		this.setValueTextPercent(percent);
+		
+		this.unlock();
 	}
 
 	handlePeekDown(e) {
@@ -192,6 +184,33 @@ class Fader {
 		this.faderFader = new FaderFader(this, to, duration);
 		this.faderFader.start();
 	}
+	
+	lock()
+	{
+		this.handle.removeEventListener('mousedown', this.onMouseDown);
+		this.handle.removeEventListener('touchstart', this.onMouseDown);
+		this.peekElement.removeEventListener('mousedown', this.onPeekDown);
+		this.peekElement.removeEventListener('touchstart', this.onPeekDown);
+		this.peekElement.removeEventListener('mouseup', this.onPeekUp);
+		this.peekElement.removeEventListener('touchend', this.onPeekUp);
+	}
+	
+	unlock()
+	{
+		this.handle.addEventListener('mousedown', this.onMouseDown);
+		this.handle.addEventListener('touchstart', this.onMouseDown);
+		this.peekElement.addEventListener('mousedown', this.onPeekDown);
+		this.peekElement.addEventListener('touchstart', this.onPeekDown);
+		this.peekElement.addEventListener('mouseup', this.onPeekUp);
+		this.peekElement.addEventListener('touchend', this.onPeekUp);
+	}
+	
+	setLocked(locked)
+	{
+		if (locked) this.lock();
+		else this.unlock();
+	}
+	
 } //class Fader
 
 /**

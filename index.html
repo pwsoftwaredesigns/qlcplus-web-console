@@ -190,6 +190,7 @@
 			var qlc = new QLCPlus();
 			var scenes = [];
 			var faders = [];
+			var gmFader = null;
 			var currentSceneIndex = null;
 			var sceneUIs = [];
 			var sceneMode = "edit";
@@ -315,7 +316,7 @@
 			{
 				//Grand Master
 				const gmFaderElement = document.querySelectorAll('#gm');
-				var gmFader = new Fader(gmFaderElement[0]);
+				gmFader = new Fader(gmFaderElement[0]);
 
 				//Channels
 				const faderElements = document.querySelectorAll('#faders > .fader');
@@ -327,6 +328,10 @@
 
 				$('input[type=radio][name=selectMode]').change(function() {
 					setSceneMode(this.value);
+				});
+				
+				$('input[type=radio][name=lock]').change(function() {
+					setLock(this.value == "true");
 				});
 
 				$("#btnEditSceneSave").click(function(){
@@ -348,6 +353,17 @@
 
 				//Saved scenes
 				restoreScenes();
+			}
+			
+			//-----[ FUNCTION: setLock ]----------------------------------------
+			function setLock(locked)
+			{		
+				gmFader.setLocked(locked);
+						
+				for (let i = 0; i < faders.length; i++)
+				{
+					faders[i].setLocked(locked);
+				}
 			}
 			
 			//-----[ FUNCTION: setSceneMode ]-----------------------------------
@@ -491,10 +507,19 @@
 	<!--oncontextmenu="return false;"-->
 	<body onload="init()" >
 		<!-- Navbar -->
-		<div class="navbar navbar-expand-lg bg-body-tertiary">
+		<div class="navbar navbar-expand-lg bg-body-tertiary d-flex justify-content-between">
 			<!-- Connect button -->
-			<div class="container-fluid">
+			<div class="">
 				<button class="btn btn-secondary" onclick="qlc.connect('127.0.0.1:9999')">Connect</button>
+			</div>
+			
+			<!-- Lock/Unlock switch -->
+			<div class="btn-group" role="group">
+				<input type="radio" class="btn-check" name="lock" autocomplete="off" value="false" id="lockNo" checked>
+				<label class="btn btn-secondary" for="lockNo"><i class="bi-unlock"></i></label>
+
+				<input type="radio" class="btn-check" name="lock" autocomplete="off" value="true" id="lockYes">
+				<label class="btn btn-secondary" for="lockYes"><i class="bi-lock"></i></label>
 			</div>
 
 			<!-- Dark mode switch -->
