@@ -29,7 +29,7 @@
 	.handle {
 		width: 100%;
 		height: var(--handle-height);
-		background-color: #026842;
+		background-color: #04AA6D;
 		cursor: pointer;
 		position: relative;
 	}

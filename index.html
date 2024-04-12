@@ -145,25 +145,37 @@
 					let btnSave = $("<button type='button' class='btn btn-primary'><i class='bi-floppy'></i></button>");
 					btnSave.click(function(e){
 						e.stopPropagation();
-						saveScene(this.scene);
+						
+						confirmModal(
+							"Save Scene", 
+							"Are you sure you want to save the current fader values to this scene?", 
+							function(){
+								saveScene(this.scene);
+							}.bind(this)
+						);
+						
+						
 					}.bind(this));
 					btnGroupElement.append(btnSave);
+					
+					let btnEdit = $("<button type='button' class='btn btn-primary'><i class='bi-pencil'></i></button>");
+					btnEdit.click(function(e){
+						e.stopPropagation();
+						editScene(this.scene);
+					}.bind(this));
+					btnGroupElement.append(btnEdit);
 
 					let btnRemove = $("<button type='button' class='btn btn-danger'><i class='bi-trash'></i></button>");
 					btnRemove.click(function(e){
 						e.stopPropagation();
 						
-						let confirmModal = new bootstrap.Modal("#confirmModal", {
-							focus: true
-						});
-						$("#confirmModal .modal-title").text("Delete Scene");
-						$("#confirmModal .modal-body p").text("Are you sure you want to delete this scene?");
-						$("#confirmModal .modal-okay").one('click', function(){
-							removeScene(this.scene);
-							confirmModal.hide();
-						}.bind(this));
-						
-						confirmModal.show();
+						confirmModal(
+							"Delete Scene", 
+							"Are you sure you want to delete this scene?", 
+							function(){
+								removeScene(this.scene);
+							}.bind(this)
+						);
 					}.bind(this));
 					btnGroupElement.append(btnRemove);
 					tdElement.append(btnGroupElement);
@@ -213,6 +225,21 @@
 			var sceneUIs = [];
 			var sceneMode = "edit";
 			var editSceneModal = null;
+			
+			function confirmModal(title, message, callback)
+			{
+				let confirmModal = new bootstrap.Modal("#confirmModal", {
+					focus: true
+				});
+				$("#confirmModal .modal-title").text(title);
+				$("#confirmModal .modal-body p").text(message);
+				$("#confirmModal .modal-okay").one('click', function(){
+					callback();
+					confirmModal.hide();
+				});
+				
+				confirmModal.show();
+			}
 
 			//-----[ FUNCTION: onChannelInput ]---------------------------------
 			/**
@@ -556,11 +583,12 @@
 				editSceneModal.show();
 			}
 
+			//-----[ FUNCTION: onSceneClicked ]---------------------------------
 			function onSceneClicked(index)
 			{
 				if (sceneMode == "edit")
 				{
-					editScene(index);
+					//editScene(index);
 				}
 				else if (sceneMode == "run")
 				{
