@@ -359,13 +359,13 @@
 
 				if (mode == "edit")
 				{
-					$(".scene-edit").show();
-					$(".scene-run").hide();
+					$(".scene-edit").css({"visibility":"visible", "display":"inherit"});
+					$(".scene-run").css({"visibility":"hidden", "display":"none"});
 				}
 				else if (sceneMode == "run")
 				{
-					$(".scene-edit").hide();
-					$(".scene-run").show();
+					$(".scene-edit").css({"visibility":"hidden", "display":"none"});
+					$(".scene-run").css({"visibility":"visible", "display":"inherit"});
 				}
 			}
 
@@ -488,7 +488,8 @@
 
 		</script>
 	</head>
-	<body onload="init()" oncontextmenu="return false;">
+	<!--oncontextmenu="return false;"-->
+	<body onload="init()" >
 		<!-- Navbar -->
 		<div class="navbar navbar-expand-lg bg-body-tertiary">
 			<!-- Connect button -->
@@ -530,16 +531,17 @@
 				</div>
 
 				<!-- Scenes -->
-				<div class="col-3">
-					<h1>Scenes</h1>
-
-					<div class="d-flex justify-content-between m-2">
+				<div class="col-3 d-flex align-items-start flex-column">
+					<!-- Scene Option Buttons -->
+					<div class="container-fluid d-flex justify-content-between m-2">
 						<div id="buttonsEditScene" class="btn-group scene-edit">
 							<button type="button" class="btn btn-primary" onclick="newScene()"><i class="bi-plus"></i></button>
 						</div>
+						
+						<h3>Scenes</h3>
 
 						<!-- Edit/Play Mode -->
-						<div class="btn-group ms-auto" role="group">
+						<div class="btn-group" role="group">
 							<input type="radio" class="btn-check" name="selectMode" autocomplete="off" value="edit" id="selectModeEdit" checked>
 							<label class="btn btn-secondary" for="selectModeEdit"><i class="bi-pencil"></i></label>
 
@@ -549,7 +551,7 @@
 					</div>
 
 					<!-- Scenes Table -->
-					<div class="container table-responsive" id="tableScenes">
+					<div class="container-fluid table-responsive" id="tableScenes">
 						<table class="table table-bordered table-hover table-responsive" >
 							<thead>
 								<th>Name</th>
@@ -563,9 +565,9 @@
 					</div>
 
 					<!-- Scenes Next/Prev Buttons -->
-					<div class="m-2 scene-run">
-						<button class="btn btn-primary btn-lg btn-scene" onclick="prevScene()"><i class="bi-caret-left"></i></button>
-						<button class="btn btn-primary btn-lg btn-scene" onclick="nextScene()"><i class="bi-caret-right"></i></button>
+					<div class="container-fluid mt-auto d-flex scene-run">
+						<button class="flex-fill btn btn-primary btn-lg btn-scene m-1" onclick="prevScene()"><i class="bi-caret-left"></i></button>
+						<button class="flex-fill btn btn-primary btn-lg btn-scene m-1" onclick="nextScene()"><i class="bi-caret-right"></i></button>
 					</div>
 				</div>
 			</div>
