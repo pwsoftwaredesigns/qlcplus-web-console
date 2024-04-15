@@ -14,6 +14,66 @@ var sceneUIs = [];
 var sceneMode = kSceneModeEdit;
 var editSceneModal = null;
 
+//-----[ FUNCTION: init ]-------------------------------------------------------
+/**
+* @brief Initialize the application
+*/
+function init()
+{
+	//Default values
+	scenes = [];
+	faders = [];
+	gmFader = null;
+	currentSceneIndex = null;
+	sceneUIs = [];
+	sceneMode = kSceneModeEdit;
+	editSceneModal = null;
+	
+	//Grand Master
+	const gmFaderElement = document.querySelectorAll('#gm');
+	gmFader = new Fader(gmFaderElement[0]);
+
+	//Channels
+	const faderElements = document.querySelectorAll('#faders > .fader');
+	for (let i = 0; i < faderElements.length; i++)
+	{
+		var fader = new Fader(faderElements[i]);
+		faders.push(fader);
+	}
+
+	$(kSelectorSceneMode).change(function() {
+		setSceneMode(this.value);
+	});
+
+	$('input[type=radio][name=lock]').change(function() {
+		setLock(this.value == "true");
+	});
+
+	$("#btnEditSceneSave").click(function(){
+		var fields = document.querySelector("#formEditScene input");
+		var attributes = {};
+		$("#formEditScene input").each(function(){
+			attributes[this.name] = this.value;
+		});
+
+		const index = $("#formEditScene input[name='scene']").val();
+		console.log("Setting scene " + index + " attributes");
+		scenes[index].setAttributes(attributes);
+		editSceneModal.hide();
+		persistScenes();
+		updateSceneTable();
+	});
+
+	$("#formEditScene .btn-quick-duration").click(function(){
+		$("#formEditScene input[name='duration']").val(this.value);
+	});
+
+	setSceneMode(sceneMode);
+
+	//Saved scenes
+	restoreScenes();
+}
+
 //-----[ FUNCTION: confirmModal ]-----------------------------------------------
 /**
 * @brief Display a modal to confirm (okay or cancel) an operation
@@ -176,57 +236,6 @@ function restoreScenes()
 
 		updateSceneTable();
 	}
-}
-
-//-----[ FUNCTION: init ]-------------------------------------------------------
-/**
-* @brief Initialize the application
-*/
-function init()
-{
-	//Grand Master
-	const gmFaderElement = document.querySelectorAll('#gm');
-	gmFader = new Fader(gmFaderElement[0]);
-
-	//Channels
-	const faderElements = document.querySelectorAll('#faders > .fader');
-	for (let i = 0; i < faderElements.length; i++)
-	{
-		var fader = new Fader(faderElements[i]);
-		faders.push(fader);
-	}
-
-	$(kSelectorSceneMode).change(function() {
-		setSceneMode(this.value);
-	});
-
-	$('input[type=radio][name=lock]').change(function() {
-		setLock(this.value == "true");
-	});
-
-	$("#btnEditSceneSave").click(function(){
-		var fields = document.querySelector("#formEditScene input");
-		var attributes = {};
-		$("#formEditScene input").each(function(){
-			attributes[this.name] = this.value;
-		});
-
-		const index = $("#formEditScene input[name='scene']").val();
-		console.log("Setting scene " + index + " attributes");
-		scenes[index].setAttributes(attributes);
-		editSceneModal.hide();
-		persistScenes();
-		updateSceneTable();
-	});
-
-	$("#formEditScene .btn-quick-duration").click(function(){
-		$("#formEditScene input[name='duration']").val(this.value);
-	});
-
-	setSceneMode(sceneMode);
-
-	//Saved scenes
-	restoreScenes();
 }
 
 //-----[ FUNCTION: setLock ]----------------------------------------------------
@@ -426,4 +435,16 @@ function onSceneClicked(index)
 	{
 		selectScene(index);
 	}
+}
+
+//-----[ FUNCTION: resetApp ]---------------------------------------------------
+/**
+* @brief Reset the application deleting all saved scenes
+*/
+function resetApp()
+{
+	confirmModal("Reset", "Are you sure you want to reset the application?  This will delete all saved scenes and cannot be undone!", function(){
+		localStorage.clear();
+		location.reload();
+	});
 }
