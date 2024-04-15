@@ -45,7 +45,7 @@ class Fader {
 		this.handle = handleElement;
 		this.valueText = valueElement;
 
-		this.startY = null;
+		this.offsetY = null;
 		this.faderHeight = null;
 		this.handleheight = null;
 
@@ -74,31 +74,34 @@ class Fader {
 
 	handlePeekDown(e) {
 		this.oldValue = this.value;
-		var percent = this.valueToPercent(this.max);
+		let percent = this.valueToPercent(this.max);
 		this.setValuePercent(percent);
 	}
 
 	handlePeekUp(e) {
-		var percent = this.valueToPercent(this.oldValue);
+		let percent = this.valueToPercent(this.oldValue);
 		this.setValuePercent(percent);
 	}
 
 	handleMouseDown(e) {
 		e.preventDefault();
 
+		let startY = 0;
 		if (e.type == "mousedown")
 		{
-			this.startY = e.clientY;
+			startY = e.clientY;
 		}
 		else if (e.type == "touchstart")
 		{
 			const { touches, changedTouches } = e.originalEvent ?? e;
 			const touch = touches[0] ?? changedTouches[0];
-			this.startY = touch.pageY;
+			startY = touch.pageY;
 		}
 
 		this.faderHeight = this.faderBody.offsetHeight;
 		this.handleHeight = this.handle.offsetHeight;
+		//Calculate the click/touch offset from the top of the handle
+		this.offsetY = startY - this.handle.getBoundingClientRect().y;
 
 		document.addEventListener('mousemove', this.onMouseMove);
 		document.addEventListener('mouseup', this.onMouseUp);
@@ -108,19 +111,26 @@ class Fader {
 	}
 
 	handleMouseMove(e) {
-		var y = this.startY;
+		let y = 0;
 		if (e.type == "mousemove")
 		{
-			this.startY = e.clientY;
+			y = e.clientY;
 		}
 		else if (e.type == "touchmove")
 		{
 			const { touches, changedTouches } = e.originalEvent ?? e;
 			const touch = touches[0] ?? changedTouches[0];
-			this.startY = touch.pageY;
+			y = touch.pageY;
 		}
 
-		var percent = 1 - ((y - this.faderBody.getBoundingClientRect().y) / this.faderHeight);
+		/*
+		* The fader's percentage is calculated as the difference between the
+		* mouse/touch's current Y position and the Y start position of the
+		* fader's body. It also includes an offset clauclate at the start of the
+		* click/touch so that the handle moves from where the user clicked/
+		* touched it.
+		*/
+		let percent = 1 - ((y - this.faderBody.getBoundingClientRect().y - this.offsetY) / this.faderHeight);
 		if (percent < 0) percent = 0;
 		else if (percent > 1) percent = 1;
 
@@ -128,7 +138,7 @@ class Fader {
 	}
 
 	handleMouseUp() {
-		this.startY = null;
+		this.offsetY = null;
 
 		document.removeEventListener('mousemove', this.onMouseMove);
 		document.removeEventListener('mouseup', this.onMouseUp);
@@ -174,7 +184,7 @@ class Fader {
 
 	setValue(val)
 	{
-		var percent = this.valueToPercent(val || 0);
+		let percent = this.valueToPercent(val || 0);
 		this.setValuePercent(percent);
 		this.setHandlePositionPercent(percent);
 	}
