@@ -1,6 +1,8 @@
 //Constants
 const kSceneModeEdit = "edit";
 const kSceneModeRun = "run";
+//DOM selector query for the scene mode switch
+const kSelectorSceneMode = 'input[type=radio][name=selectMode]';
 
 //Globals
 var qlc = new QLCPlus();
@@ -194,7 +196,7 @@ function init()
 		faders.push(fader);
 	}
 
-	$('input[type=radio][name=selectMode]').change(function() {
+	$(kSelectorSceneMode).change(function() {
 		setSceneMode(this.value);
 	});
 
@@ -235,6 +237,24 @@ function init()
 */
 function setLock(locked)
 {
+	/*
+	* Hide/show DOM elements when locked/unlocked
+	* .app-locked: Shown when locked, hidden when unlocked
+	* .app-unlocked: Shown when unlocked, hidden when locked
+	*/
+	if (locked)
+	{
+		$(".app-locked").css({"visibility":"visible", "display":""});
+		$(".app-unlocked").css({"visibility":"hidden", "display":"none"});
+	}
+	else
+	{
+		$(".app-locked").css({"visibility":"hidden", "display":"none"});
+		$(".app-unlocked").css({"visibility":"visible", "display":""});
+	}
+	
+	setSceneMode(kSceneModeRun);
+	
 	gmFader.setLocked(locked);
 
 	for (let i = 0; i < faders.length; i++)
@@ -246,6 +266,7 @@ function setLock(locked)
 //-----[ FUNCTION: setSceneMode ]-----------------------------------------------
 function setSceneMode(mode)
 {
+	$(kSelectorSceneMode).val([mode]);
 	sceneMode = mode;
 
 	console.log("Scene mode changed to " + mode);
