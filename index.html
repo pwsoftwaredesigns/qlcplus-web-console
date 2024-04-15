@@ -110,7 +110,7 @@
 				*/
 				setAttributes(attributes)
 				{
-					if (attributes.hasOwnProperty("name")) this.name = attributes["name"]
+					if (attributes.hasOwnProperty("name")) this.name = attributes["name"];
 					if (attributes.hasOwnProperty("duration")) this.duration = attributes["duration"];
 				}
 
@@ -124,6 +124,21 @@
 						for (let i = 0; i < faders.length; i++)
 						{
 							faders[i].fade(this.values[i], this.duration);
+						}
+					}
+				}
+				
+				/**
+				* @brief Cut (i.e., immediately no fading) the faders to the
+				*        scene
+				*/
+				cutTo(faders)
+				{
+					if (this.values)
+					{
+						for (let i = 0; i < faders.length; i++)
+						{
+							faders[i].setValue(this.values[i]);
 						}
 					}
 				}
@@ -216,6 +231,10 @@
 					onSceneClicked(this.scene);
 				}
 			}
+			
+			//Constants
+			const kSceneModeEdit = "edit";
+			const kSceneModeRun = "run";
 
 			var qlc = new QLCPlus();
 			var scenes = [];
@@ -223,9 +242,16 @@
 			var gmFader = null;
 			var currentSceneIndex = null;
 			var sceneUIs = [];
-			var sceneMode = "edit";
+			var sceneMode = kSceneModeEdit;
 			var editSceneModal = null;
 			
+			//-----[ FUNCTION: confirmModal ]-----------------------------------
+			/**
+			* @brief Display a modal to confirm (okay or cancel) an operation
+			* @param title A string to display as the modal's title
+			* @param message A string to display as the modal's body
+			* @param callback A function to call if the modal is confirmed (ok)
+			*/
 			function confirmModal(title, message, callback)
 			{
 				let confirmModal = new bootstrap.Modal("#confirmModal", {
@@ -314,6 +340,7 @@
 				persistScenes();
 			} //function newScene
 			
+			//-----[ FUNCTION: arrayMove ]--------------------------------------
 			function arrayMove(arr, from, to)
 			{
 				var element = arr[from];
@@ -451,12 +478,12 @@
 				
 				console.log("Scene mode changed to " + mode);
 
-				if (mode == "edit")
+				if (mode == kSceneModeEdit)
 				{
 					$(".scene-edit").css({"visibility":"visible", "display":""});
 					$(".scene-run").css({"visibility":"hidden", "display":"none"});
 				}
-				else if (sceneMode == "run")
+				else if (sceneMode == kSceneModeRun)
 				{
 					$(".scene-edit").css({"visibility":"hidden", "display":"none"});
 					$(".scene-run").css({"visibility":"visible", "display":""});
@@ -480,7 +507,7 @@
 			/**
 			* @brief Change to the given scene
 			*/
-			function selectScene(index)
+			function selectScene(index, transition = "fade")
 			{
 				console.log("Select Scene " + index);
 
@@ -494,7 +521,14 @@
 					}
 					sceneUIs[index].makeActive();
 
-					scenes[index].fadeTo(faders);
+					if (transition == "fade")
+					{
+						scenes[index].fadeTo(faders);
+					}
+					else
+					{
+						scenes[index].cutTo(faders);
+					}
 				}
 			}
 
@@ -586,14 +620,15 @@
 			//-----[ FUNCTION: onSceneClicked ]---------------------------------
 			function onSceneClicked(index)
 			{
-				if (sceneMode == "edit")
+				if (sceneMode == kSceneModeEdit)
 				{
-					//editScene(index);
+					selectScene(index, "cut");
 				}
-				else if (sceneMode == "run")
+				else
 				{
 					selectScene(index);
 				}
+				
 			}
 
 		</script>
