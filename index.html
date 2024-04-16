@@ -77,8 +77,10 @@
 		<div class="navbar navbar-expand-lg bg-body-tertiary d-flex justify-content-between">
 			<!-- Connect button -->
 			<div class="">
-				<button class="btn btn-secondary" onclick="qlc.connect('127.0.0.1:9999')">Connect</button>
-				<button class="btn btn-secondary" onclick="resetApp()">Reset <i class="bi-x-circle"></i></button>
+				<input type="checkbox" class="btn-check" autocomplete="off" id="btnConnect">
+				<label class="btn btn-secondary" for="btnConnect">Connect <i class="spinner-border spinner-border-sm spinner" role="status"></i></label>
+
+				<button class="btn btn-outline-danger" onclick="resetApp()">Reset</button>
 			</div>
 			
 			<!-- Lock/Unlock switch -->

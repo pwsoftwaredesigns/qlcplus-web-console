@@ -3,9 +3,10 @@ const kSceneModeEdit = "edit";
 const kSceneModeRun = "run";
 //DOM selector query for the scene mode switch
 const kSelectorSceneMode = 'input[type=radio][name=selectMode]';
+const kSelectorConnectingSpinner = "label[for=btnConnect] .spinner";
 
 //Globals
-var qlc = new QLCPlus();
+var qlc = new QLCPlus(autoReconnect = true);
 var scenes = [];
 var faders = [];
 var gmFader = null;
@@ -68,6 +69,26 @@ function init()
 		$("#formEditScene input[name='duration']").val(this.value);
 	});
 
+	$("#btnConnect").click(function(){
+		if (this.checked) connect();
+		else disconnect();
+	});
+	
+	qlc.onconnecting = function(){
+		$(kSelectorConnectingSpinner).show();
+	};
+	qlc.onconnected = function(){
+		$(kSelectorConnectingSpinner).hide();
+		
+		//Apply current fader states to QLC
+		sendAllFaders();
+	};
+	qlc.ondisconnected = function(){
+		$(kSelectorConnectingSpinner).hide();
+	};
+	
+	$(kSelectorConnectingSpinner).hide();
+
 	setSceneMode(sceneMode);
 
 	//Saved scenes
@@ -94,6 +115,16 @@ function confirmModal(title, message, callback)
 	});
 
 	confirmModal.show();
+}
+
+//-----[ FUNCTION: sendAllFaders ]----------------------------------------------
+function sendAllFaders()
+{
+	qlc.setGrandMaster(gmFader.value);
+	for (let i = 0; i < faders.length; i++)
+	{
+		qlc.setSimpleDeskChannel(faders[i].channel, faders[i].value);
+	}
 }
 
 //-----[ FUNCTION: onChannelInput ]---------------------------------------------
@@ -447,4 +478,19 @@ function resetApp()
 		localStorage.clear();
 		location.reload();
 	});
+}
+
+//-----[ FUNCTION: connect ]----------------------------------------------------
+/**
+* @brief Connect to QLC+
+*/
+function connect()
+{
+	qlc.connect('127.0.0.1:9999');
+}
+
+//-----[ FUNCTION: disconnect ]-------------------------------------------------
+function disconnect()
+{
+	qlc.disconnect();
 }
