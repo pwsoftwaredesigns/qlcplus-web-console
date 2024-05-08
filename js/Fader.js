@@ -76,11 +76,17 @@ class Fader {
 		this.oldValue = this.value;
 		let percent = this.valueToPercent(this.max);
 		this.setValuePercent(percent);
+		
+		document.addEventListener('mouseup', this.onPeekUp);
+		document.addEventListener('touchend', this.onPeekUp);
 	}
 
 	handlePeekUp(e) {
 		let percent = this.valueToPercent(this.oldValue);
 		this.setValuePercent(percent);
+		
+		document.removeEventListener('mouseup', this.onPeekUp);
+		document.removeEventListener('touchend', this.onPeekUp);
 	}
 
 	handleMouseDown(e) {
@@ -209,8 +215,8 @@ class Fader {
 		this.handle.removeEventListener('touchstart', this.onMouseDown);
 		this.peekElement.removeEventListener('mousedown', this.onPeekDown);
 		this.peekElement.removeEventListener('touchstart', this.onPeekDown);
-		this.peekElement.removeEventListener('mouseup', this.onPeekUp);
-		this.peekElement.removeEventListener('touchend', this.onPeekUp);
+		//this.peekElement.removeEventListener('mouseup', this.onPeekUp);
+		//this.peekElement.removeEventListener('touchend', this.onPeekUp);
 	}
 	
 	unlock()
@@ -219,8 +225,8 @@ class Fader {
 		this.handle.addEventListener('touchstart', this.onMouseDown);
 		this.peekElement.addEventListener('mousedown', this.onPeekDown);
 		this.peekElement.addEventListener('touchstart', this.onPeekDown);
-		this.peekElement.addEventListener('mouseup', this.onPeekUp);
-		this.peekElement.addEventListener('touchend', this.onPeekUp);
+		//this.peekElement.addEventListener('mouseup', this.onPeekUp);
+		//this.peekElement.addEventListener('touchend', this.onPeekUp);
 	}
 	
 	setLocked(locked)
