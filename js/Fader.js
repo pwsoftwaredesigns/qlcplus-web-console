@@ -24,7 +24,7 @@ class Fader {
 
 		var labelElement = document.createElement("div");
 		labelElement.setAttribute("class", "label");
-		
+			
 		const kDivisions = 4;
 		for (let i = 1; i < kDivisions; i++)
 		{

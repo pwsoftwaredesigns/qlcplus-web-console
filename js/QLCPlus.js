@@ -25,6 +25,7 @@ class QLCPlus
 		this._connectRequested = false;
 		this._isConnected = false;
 		this._autoReconnect = autoReconnect;
+		this._timeout = null;
 		
 		//Events
 		this.onconnecting = null;
@@ -80,13 +81,10 @@ class QLCPlus
 			if (this._connectRequested && this._autoReconnect)
 			{
 				console.log("Retrying connection after " + kRetryTimeout + "ms");
-				setTimeout(function() {
+				this._timeout = setTimeout(function() {
 			    	connect();
+			    	this._timeout = null;
 			    }.bind(this), kRetryTimeout);
-			}
-			else
-			{
-				if (this.ondisconnected) this.ondisconnected();		
 			}
 			
 			this._isConnected = false;
@@ -104,7 +102,13 @@ class QLCPlus
 	disconnect()
 	{
 		console.log("QLC Disconnect");
+		if (this._timeout)
+		{
+			clearTimeout(this._timeout);
+			this._timeout = null;
+		}
 		this._connectRequested = false;
 		if (this._websocket) this._websocket.close();
+		if (this.ondisconnected) this.ondisconnected();
 	}
 } //class QLCPlus

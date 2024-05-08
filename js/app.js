@@ -93,6 +93,10 @@ function init()
 
 	//Saved scenes
 	restoreScenes();
+	
+	//Auto connect
+	$("#btnConnect").prop("checked", true);
+	connect();
 }
 
 //-----[ FUNCTION: confirmModal ]-----------------------------------------------
@@ -493,4 +497,11 @@ function connect()
 function disconnect()
 {
 	qlc.disconnect();
+}
+
+//-----[ FUNCTION: blackout ]---------------------------------------------------
+function blackout()
+{
+	console.log("Blackout");
+	gmFader.setValue(0);
 }

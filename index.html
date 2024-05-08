@@ -75,11 +75,10 @@
 	<body onload="init()" oncontextmenu="return false;">
 		<!-- Navbar -->
 		<div class="navbar navbar-expand-lg bg-body-tertiary d-flex justify-content-between">
-			<!-- Connect button -->
 			<div class="">
+				<button class="btn btn-dark" onclick="blackout()">Blackout</button>
 				<input type="checkbox" class="btn-check" autocomplete="off" id="btnConnect">
 				<label class="btn btn-secondary" for="btnConnect">Connect <i class="spinner-border spinner-border-sm spinner" role="status"></i></label>
-
 				<button class="btn btn-outline-danger" onclick="resetApp()">Reset</button>
 			</div>
 			
@@ -102,7 +101,9 @@
 		<div class="container-fluid">
 			<div class="row">
 				<div class="col-1 p-2">
+					<!-- GM Fader -->
 					<div class="fader-container d-flex justify-content-center">
+						<!-- Fader -->
 						<div class="fader" id="gm" channel="0" value="255" max="255" onValueChanged="onChannelInput" label="GM"></div>
 					</div>
 				</div>
@@ -161,8 +162,8 @@
 
 					<!-- Scenes Next/Prev Buttons -->
 					<div class="container-fluid mt-auto d-flex scene-run">
-						<button class="flex-fill btn btn-primary btn-lg btn-scene m-1" onclick="prevScene()"><i class="bi-caret-left"></i></button>
-						<button class="flex-fill btn btn-primary btn-lg btn-scene m-1" onclick="nextScene()"><i class="bi-caret-right"></i></button>
+						<button class="flex-fill btn btn-primary btn-lg btn-scene m-1" style="--bs-btn-padding-y: 1rem;" onclick="prevScene()"><i class="bi-caret-left"></i></button>
+						<button class="flex-fill btn btn-primary btn-lg btn-scene m-1" style="--bs-btn-padding-y: 1rem;" onclick="nextScene()"><i class="bi-caret-right"></i></button>
 					</div>
 				</div>
 			</div>
