@@ -4,6 +4,7 @@ const kSceneModeRun = "run";
 //DOM selector query for the scene mode switch
 const kSelectorSceneMode = 'input[type=radio][name=selectMode]';
 const kSelectorConnectingSpinner = "label[for=btnConnect] .spinner";
+const kLockGMFader = false; //Should the Grand Master fader be lockable?
 
 //Globals
 var qlc = new QLCPlus(autoReconnect = true);
@@ -299,7 +300,7 @@ function setLock(locked)
 	
 	setSceneMode(kSceneModeRun);
 	
-	gmFader.setLocked(locked);
+	if (kLockGMFader) gmFader.setLocked(locked);
 
 	for (let i = 0; i < faders.length; i++)
 	{
