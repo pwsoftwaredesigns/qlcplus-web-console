@@ -5,6 +5,14 @@ const kSceneModeRun = "run";
 const kSelectorSceneMode = 'input[type=radio][name=selectMode]';
 const kSelectorConnectingSpinner = "label[for=btnConnect] .spinner";
 const kLockGMFader = false; //Should the Grand Master fader be lockable?
+/**
+* @brief Does the QLC+ application support the grand master fader?
+*
+* If true, then the grand master fader value will be sent directly to QLC+.
+* If false, the values of all faders will be internally scaled by the grand
+* master and sent to QLC+.
+*/
+const kQLCHasGrandMaster = false;
 
 //Globals
 var qlc = new QLCPlus(autoReconnect = true);
@@ -125,10 +133,53 @@ function confirmModal(title, message, callback)
 //-----[ FUNCTION: sendAllFaders ]----------------------------------------------
 function sendAllFaders()
 {
-	qlc.setGrandMaster(gmFader.value);
-	for (let i = 0; i < faders.length; i++)
+	if (kQLCHasGrandMaster)
 	{
-		qlc.setSimpleDeskChannel(faders[i].channel, faders[i].value);
+		qlc.setGrandMaster(gmFader.value);
+		for (let i = 0; i < faders.length; i++)
+		{
+			qlc.setSimpleDeskChannel(faders[i].channel, faders[i].value);
+		}
+	}
+	else
+	{
+		const gmValPercent = gmFader.valueToPercent(gmFader.value);
+		for (let i = 0; i < faders.length; i++)
+		{
+			qlc.setSimpleDeskChannel(faders[i].channel, Math.trunc(faders[i].value * gmValPercent));
+		}
+	}
+	
+}
+
+//-----[ FUNCTION: onGMChannelInput ]-------------------------------------------
+function onGMChannelInput(self)
+{
+	const val = self.value;
+	const valPercent = self.valueToPercent(self.value);
+	
+	try
+	{
+		if (kQLCHasGrandMaster) //We can let QLC+ handle the grand master
+		{
+			qlc.setGrandMaster(val);
+		}
+		else //We need to manually perform grand master calculations
+		{
+			//Scale all fader values by the grand master
+			for (let i = 0; i < faders.length; i++)
+			{
+				const channel = faders[i].channel;
+				const faderVal = faders[i].value;
+				const scaledFaderVal = Math.trunc(faderVal * valPercent);
+				
+				qlc.setSimpleDeskChannel(channel, scaledFaderVal);
+			}
+		}
+	}
+	catch (e)
+	{
+		console.log(e); //Do nothing
 	}
 }
 
@@ -138,20 +189,23 @@ function sendAllFaders()
 */
 function onChannelInput(self)
 {
-	var channel = self.channel;
-	var val = self.value;
+	const channel = self.channel;
+	const val = self.value;
 
 	try
 	{
-		if (channel == 0)
-		{
-			qlc.setGrandMaster(val);
-		}
-		else
+		if (kQLCHasGrandMaster)
 		{
 			qlc.setSimpleDeskChannel(channel, val);
 		}
-
+		else
+		{
+			//Scale the value actually sent to QLC+ by the current grand master value
+			const gmValPercent = gmFader.valueToPercent(gmFader.value);
+			const scaledVal = Math.trunc(val * gmValPercent);
+			
+			qlc.setSimpleDeskChannel(channel, scaledVal);
+		}
 	}
 	catch(e)
 	{
