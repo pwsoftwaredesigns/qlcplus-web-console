@@ -4,7 +4,7 @@
 	border-right: 2px solid #d3d3d3;
 }
 .fader {
-	--handle-height: 30px;
+	--handle-height: 50px;
 	--fader-width: 50px;
 	
 	width: var(--fader-width);
