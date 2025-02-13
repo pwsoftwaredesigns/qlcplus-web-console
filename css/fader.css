@@ -50,14 +50,15 @@
 		text-align: center;
 	}
 
-	.peek {
+	.peek, .up, .down {
+		color: black;
 		margin-top: 5px;
 		background-color: #d3d3d3;
 		height: 40px;
 		opacity: 0.7;
 	}
 
-	.peek:hover {
+	.peek:hover, .up:hover, .down:hover {
 		opacity: 1;
 	}
 

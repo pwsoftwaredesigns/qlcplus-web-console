@@ -4,7 +4,8 @@
 */
 
 class Fader {
-	constructor(faderElement) {
+	constructor(faderElement)
+	{
 		var valueElement = document.createElement("div");
 		valueElement.setAttribute("class", "value");
 
@@ -21,6 +22,15 @@ class Fader {
 
 		this.peekElement = document.createElement("button");
 		this.peekElement.setAttribute("class", "peek btn");
+		this.peekElement.innerHTML = "<i class='bi-eye'></i>";
+		
+		this.upElement = document.createElement("button");
+		this.upElement.setAttribute("class", "up btn");
+		this.upElement.innerHTML = "<i class='bi-arrow-up'></i>";
+		
+		this.downElement = document.createElement("button");
+		this.downElement.setAttribute("class", "down btn");
+		this.downElement.innerHTML = "<i class='bi-arrow-down'></i>";
 
 		var labelElement = document.createElement("div");
 		labelElement.setAttribute("class", "label");
@@ -38,6 +48,8 @@ class Fader {
 
 		this.faderElement.appendChild(valueElement);
 		this.faderElement.appendChild(bodyElement);
+		this.faderElement.appendChild(this.upElement);
+		this.faderElement.appendChild(this.downElement);
 		this.faderElement.appendChild(this.peekElement);
 		this.faderElement.appendChild(labelElement);
 
@@ -61,6 +73,8 @@ class Fader {
 		this.onMouseUp = this.handleMouseUp.bind(this);
 		this.onPeekDown = this.handlePeekDown.bind(this);
 		this.onPeekUp = this.handlePeekUp.bind(this);
+		this.onUpClicked = this.handleUpClicked.bind(this);
+		this.onDownClicked = this.handleDownClicked.bind(this);
 
 		//Apply initial value
 		this.faderHeight = this.faderBody.offsetHeight;
@@ -72,7 +86,11 @@ class Fader {
 		this.unlock();
 	}
 
-	handlePeekDown(e) {
+	/**
+	* @brief The "Peek" button was pressed
+	*/
+	handlePeekDown(e)
+	{
 		this.oldValue = this.value;
 		let percent = this.valueToPercent(this.max);
 		this.setValuePercent(percent);
@@ -81,15 +99,39 @@ class Fader {
 		document.addEventListener('touchend', this.onPeekUp);
 	}
 
-	handlePeekUp(e) {
+	/**
+	* @brief The "Peek" button was released
+	*/
+	handlePeekUp(e)
+	{
 		let percent = this.valueToPercent(this.oldValue);
 		this.setValuePercent(percent);
 		
 		document.removeEventListener('mouseup', this.onPeekUp);
 		document.removeEventListener('touchend', this.onPeekUp);
 	}
+	
+	/**
+	* @brief The "Up" button was clicked
+	*/
+	handleUpClicked(e)
+	{
+		this.setValuePercent(1);
+	}
+	
+	/**
+	* @brief The "Down" button was clicked
+	*/
+	handleDownClicked(e)
+	{
+		this.setValuePercent(0);
+	}
 
-	handleMouseDown(e) {
+	/**
+	* @brief The fader was pressed
+	*/
+	handleMouseDown(e)
+	{
 		e.preventDefault();
 
 		let startY = 0;
@@ -116,6 +158,9 @@ class Fader {
 		document.addEventListener('touchend', this.onMouseUp);
 	}
 
+	/**
+	* @brief The fader was dragged
+	*/
 	handleMouseMove(e) {
 		let y = 0;
 		if (e.type == "mousemove")
@@ -143,6 +188,9 @@ class Fader {
 		this.setValuePercent(percent);
 	}
 
+	/**
+	* @brief The fader was released
+	*/
 	handleMouseUp() {
 		this.offsetY = null;
 
@@ -209,24 +257,42 @@ class Fader {
 		this.faderFader.start();
 	}
 	
+	/**
+	* @brief Lock the fader so that it cannot be moved by the user
+	*
+	* The fader is "locked" by disabling the user input events.
+	*/
 	lock()
 	{
 		this.handle.removeEventListener('mousedown', this.onMouseDown);
 		this.handle.removeEventListener('touchstart', this.onMouseDown);
 		this.peekElement.removeEventListener('mousedown', this.onPeekDown);
 		this.peekElement.removeEventListener('touchstart', this.onPeekDown);
-		//this.peekElement.removeEventListener('mouseup', this.onPeekUp);
-		//this.peekElement.removeEventListener('touchend', this.onPeekUp);
+		this.upElement.removeEventListener('click', this.onUpClicked);
+		this.downElement.removeEventListener('click', this.onDownClicked);
+		
+		//Hide
+		this.peekElement.style.display = "none";
+		this.upElement.style.display = "none";
+		this.downElement.style.display = "none";
 	}
 	
+	/**
+	*  @brief Unlcok the fader so that it can be moved by the user
+	*/
 	unlock()
 	{
 		this.handle.addEventListener('mousedown', this.onMouseDown);
 		this.handle.addEventListener('touchstart', this.onMouseDown);
 		this.peekElement.addEventListener('mousedown', this.onPeekDown);
 		this.peekElement.addEventListener('touchstart', this.onPeekDown);
-		//this.peekElement.addEventListener('mouseup', this.onPeekUp);
-		//this.peekElement.addEventListener('touchend', this.onPeekUp);
+		this.upElement.addEventListener('click', this.onUpClicked);
+		this.downElement.addEventListener('click', this.onDownClicked);
+		
+		//Show
+		this.peekElement.style.display = "";
+		this.upElement.style.display = "";
+		this.downElement.style.display = "";
 	}
 	
 	setLocked(locked)
