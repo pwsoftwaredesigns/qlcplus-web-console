@@ -62,8 +62,6 @@ class RandomizedScene {
             return;
         }
 
-		this.turnOffFaders();
-
         // Ensure we initialize the remainingFaders pool with valid faders
         this.initializePool();
 
@@ -87,6 +85,9 @@ class RandomizedScene {
                 // Step 3: Remove the selected fader from the pool
                 this.remainingFaders.splice(randomIndex, 1);
 
+				//Save the current value
+				const currentValue = selectedFader.value;
+
                 // Step 4: Immediately cut to the selected fader's value
                 selectedFader.setValue(selectedValue);
 
@@ -97,11 +98,13 @@ class RandomizedScene {
 				}
 				catch (err)
 				{
-					break;
+					
 				}
-                
-                // Step 5: Turn off the fader (set value to 0)
-                selectedFader.setValue(0);
+				finally
+				{
+					// Step 5: Restore fader value
+					selectedFader.setValue(currentValue);
+				}
             }
 
 			this.isRunning = false;
@@ -125,8 +128,6 @@ class RandomizedScene {
      * @brief Exit the randomizer process.
      */
     exit() {
-		this.turnOffFaders();
-
 		if (this.abortController) {
 			this.abortController.abort(); // Abort the running randomizer loop
 			this.abortController = null; // Reset the controller
@@ -140,7 +141,7 @@ class RandomizedScene {
     initializePool() {
         this.remainingFaders = this.faders
             .map((fader, index) => index) // Create an array with all indices
-            .filter(index => this.values[index] > 0); // Keep only indices with non-zero values
+            .filter(index => (this.values[index] - this.faders[index].value) > 0); // Keep only indices with non-zero values
     }
 
     /**
@@ -156,13 +157,4 @@ class RandomizedScene {
             });
         });
     }
-
-	turnOffFaders()
-	{
-		//Turn off all faders
-		for (let i = 0; i < this.faders.length; i++)
-		{
-			this.faders[i].setValue(0);
-		}
-	}
 }
