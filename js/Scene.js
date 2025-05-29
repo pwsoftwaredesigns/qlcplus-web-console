@@ -13,9 +13,9 @@ class Scene
 		};
 	}
 
-	static fromData(data)
+	static fromData(data, faders)
 	{
-		let scene = new Scene(data["name"]);
+		let scene = new Scene(faders, data["name"]);
 		scene.values = data["values"];
 		scene.duration = data["duration"];
 

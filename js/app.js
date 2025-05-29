@@ -338,7 +338,16 @@ function restoreScenes()
 		scenes = [];
 		for (let i = 0; i < data.length; i++)
 		{
-			scenes.push(SceneFactory.fromData(data[i], faders));
+			try
+			{
+				let scene = SceneFactory.fromData(data[i], faders);
+				scenes.push(scene);
+			}
+			catch (err)
+			{
+				console.error("Error restoring scene at index " + i + ": " + err);
+				continue; // Skip this scene if there's an error
+			}
 		}
 
 		updateSceneTable();
@@ -386,7 +395,10 @@ function setSceneMode(mode)
 	sceneMode = mode;
 
 	//Exit the current scene then cut to it
-	selectScene(currentSceneIndex, "cut");
+	if (currentSceneIndex !== null)
+	{
+		selectScene(currentSceneIndex, mode == kSceneModeEdit ? "cut" : "fade");
+	}
 
 	if (mode == kSceneModeEdit)
 	{
@@ -425,8 +437,6 @@ function scrollToScene(index)
 */
 function selectScene(index, transition = "fade")
 {
-	if (currentSceneIndex === null) return;
-
 	console.log("Select Scene " + index);
 
 	//"Exit" the current scene
@@ -463,19 +473,25 @@ function selectScene(index, transition = "fade")
 */
 function nextScene()
 {
-	if (sceneUIs.length > 0) {
-		if (currentSceneIndex !== null) {
-			currentSceneIndex += 1;
-		} else {
-			currentSceneIndex = 0;
+	let nextSceneIndex = null;
+	if (sceneUIs.length > 0)
+	{
+		if (currentSceneIndex !== null)
+		{
+			nextSceneIndex = currentSceneIndex + 1;
+		}
+		else
+		{
+			nextSceneIndex = 0;
 		}
 
-		if (currentSceneIndex >= sceneUIs.length) {
-			currentSceneIndex = 0;
+		if (currentSceneIndex >= sceneUIs.length)
+		{
+			nextSceneIndex = 0;
 		}
 
-		selectScene(currentSceneIndex);
-		scrollToScene(currentSceneIndex);
+		selectScene(nextSceneIndex);
+		scrollToScene(nextSceneIndex);
 	}
 }
 
@@ -485,19 +501,25 @@ function nextScene()
 */
 function prevScene()
 {
-	if (sceneUIs.length > 0) {
-		if (currentSceneIndex !== null) {
-			currentSceneIndex -= 1;
-		} else {
-			currentSceneIndex = sceneUIs.length - 1;
+	let nextSceneIndex = null;
+	if (sceneUIs.length > 0)
+	{
+		if (currentSceneIndex !== null)
+		{
+			nextSceneIndex = currentSceneIndex - 1;
+		}
+		else
+		{
+			nextSceneIndex = sceneUIs.length - 1;
 		}
 
-		if (currentSceneIndex < 0) {
-			currentSceneIndex = sceneUIs.length - 1;
+		if (currentSceneIndex < 0)
+		{
+			nextSceneIndex = sceneUIs.length - 1;
 		}
 
-		selectScene(currentSceneIndex);
-		scrollToScene(currentSceneIndex);
+		selectScene(nextSceneIndex);
+		scrollToScene(nextSceneIndex);
 	}
 }
 

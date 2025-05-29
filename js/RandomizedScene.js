@@ -10,8 +10,8 @@ class RandomizedScene {
 		};
     }
 
-    static fromData(data) {
-        let scene = new RandomizedScene(data["faders"], data["name"]);
+    static fromData(data, faders) {
+        let scene = new RandomizedScene(faders, data["name"]);
         scene.values = data["values"];
         scene.duration = data["duration"];
 
@@ -25,7 +25,8 @@ class RandomizedScene {
         this.values = null; // Values to which faders are set
         this.duration = 100; // Time (in ms) for fading - relevant only for certain operations
 
-        this.isRunning = false; // Indicates whether the randomizer is running
+		this.isRunning = false; // Flag to indicate if the randomizer is currently running
+        this.abortController = null; // Tracks the instance of AbortController
 		this.remainingFaders = []; // Tracks which faders are left to be chosen
     }
 
@@ -53,15 +54,22 @@ class RandomizedScene {
      *        selected once before repeating.
      */
     fadeTo() {
+		if (this.isRunning) return;
+		this.isRunning = true;
+
         if (!this.values || this.faders.length === 0) {
             console.error("No faders or values have been assigned to the scene.");
             return;
         }
 
-        this.isRunning = true;
+		this.turnOffFaders();
 
         // Ensure we initialize the remainingFaders pool with valid faders
         this.initializePool();
+
+		// Create an AbortController for this instance
+        this.abortController = new AbortController();
+        const { signal } = this.abortController;
 
         const randomizerLoop = async () => {
             while (this.isRunning) {
@@ -83,14 +91,20 @@ class RandomizedScene {
                 selectedFader.setValue(selectedValue);
 
                 // Wait for the duration
-                await this.delay(this.duration);
-
+				try
+				{
+					await this.sleep(this.duration, signal);
+				}
+				catch (err)
+				{
+					break;
+				}
+                
                 // Step 5: Turn off the fader (set value to 0)
                 selectedFader.setValue(0);
-
-                // Optional: Add a delay between iterations
-                await this.delay(100); // Small gap between cycles
             }
+
+			this.isRunning = false;
         };
 
         randomizerLoop();
@@ -111,6 +125,12 @@ class RandomizedScene {
      * @brief Exit the randomizer process.
      */
     exit() {
+		this.turnOffFaders();
+
+		if (this.abortController) {
+			this.abortController.abort(); // Abort the running randomizer loop
+			this.abortController = null; // Reset the controller
+		}
         this.isRunning = false;
     }
 
@@ -127,7 +147,22 @@ class RandomizedScene {
      * @brief Helper function for adding delay.
      * @param ms Duration to wait in milliseconds.
      */
-    delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+    sleep(ms, signal) {
+        return new Promise((resolve, reject) => {
+            const timeout = setTimeout(resolve, ms);
+            signal.addEventListener("abort", () => {
+                clearTimeout(timeout);
+                reject(new DOMException("AbortError"));
+            });
+        });
     }
+
+	turnOffFaders()
+	{
+		//Turn off all faders
+		for (let i = 0; i < this.faders.length; i++)
+		{
+			this.faders[i].setValue(0);
+		}
+	}
 }
