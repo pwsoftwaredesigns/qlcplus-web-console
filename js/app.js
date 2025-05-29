@@ -240,6 +240,22 @@ function updateSceneTable()
 		colTransition.textContent = scenes[i].duration;
 		row.appendChild(colTransition);
 
+		// Column for Scene Type Icon
+        var colIcon = document.createElement("td");
+        var icon = document.createElement("i"); // Create an <i> element for Bootstrap Icons
+        // Determine the icon class based on the scene's type
+        if (scenes[i] instanceof RandomizedScene) {
+            icon.className = "bi bi-shuffle"; // Bootstrap Icon for shuffled/random
+			colIcon.title = "Randomized Scene";
+        } else if (scenes[i] instanceof Scene) {
+            icon.className = "bi bi-arrow-up"; // Bootstrap Icon for theater mask
+			colIcon.title = "Basic Scene";
+        } else {
+            icon.className = "bi bi-question-circle"; // Default icon for unknown scene types
+        }
+        colIcon.appendChild(icon); // Add the icon to the column
+        row.appendChild(colIcon); // Append the icon column to the row
+
 		sceneUIs.push(new SceneUI(i, row));
 	}
 

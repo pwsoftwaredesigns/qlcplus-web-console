@@ -133,8 +133,8 @@
 					<!-- Scene Option Buttons -->
 					<div class="container-fluid d-flex justify-content-between m-2">
 						<div id="buttonsEditScene" class="btn-group scene-edit">
-							<button type="button" class="btn btn-primary" onclick="newScene()"><i class="bi-plus"></i></button>
-							<button type="button" class="btn btn-primary" onclick="newScene(null, RandomizedScene.typeId)"><i class="bi-plus"></i><i class="bi-shuffle"></i></button>
+							<button type="button" class="btn btn-primary" onclick="newScene()" title="New basic scene"><i class="bi-plus"></i><i class="bi-arrow-up"></i></button>
+							<button type="button" class="btn btn-primary" onclick="newScene(null, RandomizedScene.typeId)" title="New randomizer scene"><i class="bi-plus"></i><i class="bi-shuffle"></i></button>
 						</div>
 						
 						<h3>Scenes</h3>
@@ -153,9 +153,10 @@
 					<div class="container-fluid table-responsive" id="tableScenes">
 						<table class="table table-bordered table-hover table-responsive" >
 							<thead>
-								<th><i class="bi-tag"></i></th>
-								<th><i class="bi-clock"></i></th>
-								<th class='scene-edit'></th>
+								<th title="Scene Name"><i class="bi-tag"></i></th>
+								<th title="Scene Transition Duration"><i class="bi-clock"></i></th>
+								<th title="Scene Type"><i class="bi-info-circle"></i></th>
+								<th title="Scene Options" class='scene-edit'></th>
 							</thead>
 							<tbody id="scenes">
 
