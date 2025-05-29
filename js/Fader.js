@@ -316,9 +316,7 @@ class FaderFader
 		this.onComplete = null;
 		this.onStopped = null;
 		
-		this.kTickRate = 10;
-		this.change = 1;
-		this.diff = 0;
+		this.change = 0;
 		
 		this.tickHandler = this.onTick.bind(this);
 	}
@@ -327,16 +325,14 @@ class FaderFader
 	{
 		this.stop(); //To handle restart conditions
 		
-		this.diff = this.to - this.fader.value; //How far do we need to fade?
-		const diffAbs = Math.abs(this.diff);
-		
-		const ticks = this.duration / this.kTickRate; //The number of ticks
-		this.change = (this.diff > 0) ? Math.ceil(this.diff / ticks) : Math.floor(this.diff / ticks); //Change in value per tick
+		const diff = this.to - this.fader.value; //How far do we need to fade?
+		const diffAbs = Math.abs(diff);
+		const tickRate = this.duration / diffAbs; //Assuming we move 1 unit per tick, how many ticks do we need to complete the fade?
 		
 		if (diffAbs != 0) //Do we need to move?
 		{
-			this.countdown = this.duration;
-			this.timer = window.setInterval(this.tickHandler, this.kTickRate);
+			this.change = (diff > 0) ? 1 : -1;
+			this.timer = window.setInterval(this.tickHandler, tickRate);
 		}
 		else
 		{
@@ -356,16 +352,7 @@ class FaderFader
 	
 	onTick()
 	{
-		var newValue = this.fader.value + this.change;
-		if (this.diff > 0)
-		{
-			if (newValue > this.to) newValue = this.to;
-		}
-		else
-		{
-			if (newValue < this.to) newValue = this.to;
-		}
-		
+		const newValue = this.fader.value + this.change;
 		this.fader.setValue(newValue);
 		
 		if (this.fader.value == this.to)
