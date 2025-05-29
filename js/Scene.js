@@ -1,9 +1,16 @@
 //-----[ CLASS: Scene ]---------------------------------------------
 class Scene
 {
+	static typeId = "basic"; 
+
 	static toData(scene)
 	{
-		return scene;
+		return {
+			typeId: Scene.typeId,
+			name: scene.name,
+			values: scene.values,
+			duration: scene.duration,
+		};
 	}
 
 	static fromData(data)
@@ -15,8 +22,9 @@ class Scene
 		return scene;
 	}
 
-	constructor(name)
+	constructor(faders, name)
 	{
+		this.faders = faders; // Reference to the faders this scene will control
 		this.name = name; //User-defined name for the scene
 		this.values = null; //Values to which faders are set
 		this.duration = 1000; //Time (in ms) to fade to this scene
@@ -46,13 +54,13 @@ class Scene
 	/**
 	* @brief Fade the given set of faders to this scene
 	*/
-	fadeTo(faders)
+	fadeTo()
 	{
 		if (this.values)
 		{
-			for (let i = 0; i < faders.length; i++)
+			for (let i = 0; i < this.faders.length; i++)
 			{
-				faders[i].fade(this.values[i], this.duration);
+				this.faders[i].fade(this.values[i], this.duration);
 			}
 		}
 	}
@@ -61,15 +69,20 @@ class Scene
 	* @brief Cut (i.e., immediately no fading) the faders to the
 	*        scene
 	*/
-	cutTo(faders)
+	cutTo()
 	{
 		if (this.values)
 		{
-			for (let i = 0; i < faders.length; i++)
+			for (let i = 0; i < this.faders.length; i++)
 			{
-				faders[i].setValue(this.values[i]);
+				this.faders[i].setValue(this.values[i]);
 			}
 		}
+	}
+
+	exit()
+	{
+		//Do nothing
 	}
 
 } //class Scene

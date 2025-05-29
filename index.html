@@ -13,7 +13,9 @@
 		<script src="js/QLCPlus.js"></script>
 		<script src="js/bootstrap.bundle.min.js"></script>
 		<script src="js/theme.js"></script>
+		<script src="js/SceneFactory.js"></script>
 		<script src="js/Scene.js"></script>
+		<script src="js/RandomizedScene.js"></script>
 		<script src="js/SceneUI.js"></script>
 		<script src="js/app.js"></script>
 
@@ -132,6 +134,7 @@
 					<div class="container-fluid d-flex justify-content-between m-2">
 						<div id="buttonsEditScene" class="btn-group scene-edit">
 							<button type="button" class="btn btn-primary" onclick="newScene()"><i class="bi-plus"></i></button>
+							<button type="button" class="btn btn-primary" onclick="newScene(null, RandomizedScene.typeId)"><i class="bi-plus"></i><i class="bi-shuffle"></i></button>
 						</div>
 						
 						<h3>Scenes</h3>

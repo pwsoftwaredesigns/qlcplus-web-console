@@ -30,6 +30,9 @@ var editSceneModal = null;
 */
 function init()
 {
+	SceneFactory.register(Scene.typeId, Scene);
+	SceneFactory.register(RandomizedScene.typeId, RandomizedScene);
+
 	//Default values
 	scenes = [];
 	faders = [];
@@ -245,18 +248,27 @@ function updateSceneTable()
 
 //-----[ FUNCTION: newScene ]---------------------------------------------------
 /**
-* @brief Create a new scene with the given name
+* @brief Create a new scene with the given name and type
 */
-function newScene(name)
+function newScene(name = null, type = Scene.typeId)
 {
-	var nextSceneNumber = scenes.length + 1;
+	try
+	{
+		let nextSceneNumber = scenes.length + 1;
+		let scene = SceneFactory.create(type, faders,  "Scene " + nextSceneNumber);
 
-	scenes.push(new Scene("Scene " + nextSceneNumber));
-	//Save the current fader settings to the new scene
-	saveScene(scenes.length - 1);
-	updateSceneTable();
+		scenes.push(scene);
 
-	persistScenes();
+		//Save the current fader settings to the new scene
+		saveScene(scenes.length - 1);
+		updateSceneTable();
+
+		persistScenes();
+	} 
+	catch (error)
+	{
+		console.error("Error creating new scene:", error);
+	}
 } //function newScene
 
 //-----[ FUNCTION: arrayMove ]--------------------------------------------------
@@ -300,7 +312,7 @@ function removeScene(index)
 	persistScenes();
 
 	console.log("Removed scene " + index);
-} //function newScene
+} //function removeScene
 
 //-----[ FUNCTION: persistScenes ]----------------------------------------------
 /**
@@ -308,7 +320,12 @@ function removeScene(index)
 */
 function persistScenes()
 {
-	localStorage.setItem("scenes", JSON.stringify(scenes));
+	jsonScenes = []; //Clear the array
+	for (let i = 0; i < scenes.length; i++)
+	{
+		jsonScenes.push(SceneFactory.toData(scenes[i]));
+	}
+	localStorage.setItem("scenes", JSON.stringify(jsonScenes));
 } //function persistScenes
 
 //-----[ FUNCTION: restoreScenes ]----------------------------------------------
@@ -321,7 +338,7 @@ function restoreScenes()
 		scenes = [];
 		for (let i = 0; i < data.length; i++)
 		{
-			scenes.push(Scene.fromData(data[i]));
+			scenes.push(SceneFactory.fromData(data[i], faders));
 		}
 
 		updateSceneTable();
@@ -368,7 +385,8 @@ function setSceneMode(mode)
 	$(kSelectorSceneMode).val([mode]);
 	sceneMode = mode;
 
-	console.log("Scene mode changed to " + mode);
+	//Exit the current scene then cut to it
+	selectScene(currentSceneIndex, "cut");
 
 	if (mode == kSceneModeEdit)
 	{
@@ -380,6 +398,8 @@ function setSceneMode(mode)
 		$(".scene-edit").css({"visibility":"hidden", "display":"none"});
 		$(".scene-run").css({"visibility":"visible", "display":""});
 	}
+
+	console.log("Scene mode changed to " + mode);
 }
 
 //-----[ FUNCTION: scrollToScene ]----------------------------------------------
@@ -405,8 +425,17 @@ function scrollToScene(index)
 */
 function selectScene(index, transition = "fade")
 {
+	if (currentSceneIndex === null) return;
+
 	console.log("Select Scene " + index);
 
+	//"Exit" the current scene
+	if (currentSceneIndex !== null && currentSceneIndex < scenes.length)
+	{
+		scenes[currentSceneIndex].exit();
+	}
+
+	//"Enter" the new scene
 	currentSceneIndex = index;
 
 	if (index < sceneUIs.length)
@@ -419,11 +448,11 @@ function selectScene(index, transition = "fade")
 
 		if (transition == "fade")
 		{
-			scenes[index].fadeTo(faders);
+			scenes[index].fadeTo();
 		}
 		else
 		{
-			scenes[index].cutTo(faders);
+			scenes[index].cutTo();
 		}
 	}
 }
